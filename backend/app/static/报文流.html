@@ -21,7 +21,8 @@
 
     <section class="卷">
       <div class="横排 下距12" id="命运统计"></div>
-      <div class="表绕"><table><thead><tr><th>报文编号</th><th>站点</th><th>指标</th><th>读数</th><th>观测时</th><th>命运</th></tr></thead><tbody id="表"></tbody></table></div>
+      <div class="只读框 上距8" id="收口提示"></div>
+      <div class="表绕"><table><thead><tr><th>报文编号</th><th>站点</th><th>指标</th><th>读数</th><th>观测时</th><th>批次</th><th>命运</th><th>批收口</th></tr></thead><tbody id="表"></tbody></table></div>
     </section>
     <section class="卷"><div class="双栏"><p class="说明">报文是装载入流。命运应可读：已装载→已入栏/已坏点→已汇总。</p><div class="侧注">子方向：采集入库质控。行业皮：环境监测传感站。</div></div></section>
     <script>
@@ -31,11 +32,22 @@
       box.innerHTML = Object.entries(fate).map(([k,v]) =>
         `<div class="水卡"><div class="数">${v}</div><div class="标">${探栏.安全文本(k)}</div></div>`
       ).join("") || 探栏.空态("尚无命运统计");
+      const 对账 = await 探栏.getJSON("/api/统计/装载对账");
+      const 提示 = document.getElementById("收口提示");
+      提示.innerHTML = `批次收口分轨：成功批 <b class="铜字">${对账.成功批数}</b> · 失败清回批 <b class="危字">${对账.失败批数}</b> · 现行入流 ${对账.现行入流总数} · 失败影子（只读账册）${对账.失败影子总行数}；失败批报文已整批清回，不会出现在下方流水。`;
+      const 收口行 = await 探栏.getJSON("/api/装载批收口");
+      const 批态 = {};
+      for (const r of 收口行) 批态[r.批次编号] = r.收口;
       const rows = await 探栏.getJSON("/api/观测报文");
       const tb = document.getElementById("表");
-      if (!rows.length) { tb.innerHTML = `<tr><td colspan="6">${探栏.空态("尚无报文。回探栏台灌入栏成汇总样例。")}</td></tr>`; return; }
+      if (!rows.length) { tb.innerHTML = `<tr><td colspan="8">${探栏.空态("尚无报文。回探栏台灌入栏成汇总样例；失败批已清回，故此处只见整批成功报文。")}</td></tr>`; return; }
       for (const r of rows) {
-        tb.appendChild(探栏.行(`<td>${探栏.安全文本(r.报文编号)}</td><td>${探栏.安全文本(r.站点键)}</td><td>${探栏.安全文本(r.指标键)}</td><td>${r.读数}</td><td>${探栏.安全文本(r.观测时)}</td><td>${探栏.徽章(r.命运)}</td>`));
+        tb.appendChild(探栏.行(
+          `<td>${探栏.安全文本(r.报文编号)}</td><td>${探栏.安全文本(r.站点键)}</td>` +
+          `<td>${探栏.安全文本(r.指标键)}</td><td>${r.读数}</td><td>${探栏.安全文本(r.观测时)}</td>` +
+          `<td>${探栏.安全文本(r.批次编号||"")}</td><td>${探栏.徽章(r.命运)}</td>` +
+          `<td>${探栏.收口徽章(批态[r.批次编号]||"")}</td>`
+        ));
       }
     })();
     </script>

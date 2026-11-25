@@ -20,15 +20,27 @@
     </header>
 
     <section class="卷">
-      <div class="表绕"><table><thead><tr><th>报文编号</th><th>站点</th><th>指标</th><th>读数</th><th>栏号</th><th>命运</th></tr></thead><tbody id="表"></tbody></table></div>
+      <div class="只读框 上距8" id="收口提示"></div>
+      <div class="表绕"><table><thead><tr><th>报文编号</th><th>站点</th><th>指标</th><th>读数</th><th>栏号</th><th>批次</th><th>命运</th><th>批收口</th></tr></thead><tbody id="表"></tbody></table></div>
     </section>
     <script>
     (async () => {
+      const 收口行 = await 探栏.getJSON("/api/装载批收口");
+      const 批态 = {};
+      for (const r of 收口行) 批态[r.批次编号] = r.收口;
+      const 失败 = 收口行.filter((r) => r.收口 === "失败清回");
+      document.getElementById("收口提示").innerHTML =
+        `本页只列现行在栏集合。失败清回批 <b class="危字">${失败.length}</b> 个，其前半影子已整批清回、不在本缓冲，可在探栏台「装载批收口账」只读查看。`;
       const rows = await 探栏.getJSON("/api/入栏缓冲");
       const tb = document.getElementById("表");
-      if (!rows.length) { tb.innerHTML = `<tr><td colspan="6">${探栏.空态("缓冲为空。")}</td></tr>`; return; }
+      if (!rows.length) { tb.innerHTML = `<tr><td colspan="8">${探栏.空态("缓冲为空：无现行在栏（失败批已清回，影子见收口账）。")}</td></tr>`; return; }
       for (const r of rows) {
-        tb.appendChild(探栏.行(`<td>${探栏.安全文本(r.报文编号)}</td><td>${探栏.安全文本(r.站点键)}</td><td>${探栏.安全文本(r.指标键)}</td><td>${r.读数}</td><td>${探栏.安全文本(r.栏号)}</td><td>${探栏.徽章(r.命运)}</td>`));
+        tb.appendChild(探栏.行(
+          `<td>${探栏.安全文本(r.报文编号)}</td><td>${探栏.安全文本(r.站点键)}</td>` +
+          `<td>${探栏.安全文本(r.指标键)}</td><td>${r.读数}</td><td>${探栏.安全文本(r.栏号)}</td>` +
+          `<td>${探栏.安全文本(r.批次编号||"")}</td><td>${探栏.徽章(r.命运)}</td>` +
+          `<td>${探栏.收口徽章(批态[r.批次编号]||"整批成功")}</td>`
+        ));
       }
     })();
     </script>

@@ -222,6 +222,9 @@ th { color: var(--muted); font-weight: 600; background: rgba(0,0,0,0.2); }
 }
 .徽章.ok { border-color: var(--ok); color: var(--ok); }
 .徽章.warn { border-color: var(--copper); color: var(--copper-soft); }
+.徽章.好 { border-color: var(--ok); color: var(--ok); }
+.徽章.警 { border-color: var(--copper); color: var(--copper-soft); }
+.徽章.危 { border-color: var(--danger); color: var(--danger); }
 .底栏 {
   position: fixed; left: 0; right: 0; bottom: 0; height: 58px;
   background: var(--dock); border-top: 1px solid var(--line); z-index: 20;

@@ -40,8 +40,13 @@
       <pre class="回执" id="回执">操作回执会显示在这里</pre>
     </section>
     <section class="卷">
+      <h2>装载批收口账（只读：失败清回影子与现行集合分轨）</h2>
+      <div class="横排 下距12" id="收口对账"></div>
+      <div class="表绕"><table><thead><tr><th>批次编号</th><th>时刻</th><th>收口</th><th>失败指纹</th><th>影子入流</th><th>现行观测</th><th>现行在栏</th><th>失败原因</th></tr></thead><tbody id="收口账表"></tbody></table></div>
+    </section>
+    <section class="卷">
       <h2>最近装载批次</h2>
-      <div class="表绕"><table><thead><tr><th>编号</th><th>时刻</th><th>入流</th><th>入栏</th><th>坏点</th></tr></thead><tbody id="装载批次表"></tbody></table></div>
+      <div class="表绕"><table><thead><tr><th>编号</th><th>时刻</th><th>入流</th><th>入栏</th><th>坏点</th><th>收口</th><th>失败指纹</th></tr></thead><tbody id="装载批次表"></tbody></table></div>
     </section>
     <section class="卷">
       <h2>最近结栏批次</h2>
@@ -57,9 +62,41 @@
       探栏.渲染水位(document.getElementById("水位"), o);
       探栏.渲染门槛(document.getElementById("门槛条"), o.栏规 || {});
       const loads = await 探栏.getJSON("/api/装载批次");
-      探栏.渲染批次表(document.getElementById("装载批次表"), loads, ["编号","时刻","入流","入栏","坏点"]);
+      const tb = document.getElementById("装载批次表");
+      if (!loads.length) {
+        tb.innerHTML = `<tr><td colspan="7">${探栏.空态("尚无批次。")}</td></tr>`;
+      } else {
+        tb.innerHTML = "";
+        for (const r of loads) {
+          tb.appendChild(探栏.行(
+            `<td>${探栏.安全文本(r.编号)}</td><td>${探栏.安全文本(r.时刻)}</td>` +
+            `<td>${r.入流}</td><td>${r.入栏}</td><td>${r.坏点}</td>` +
+            `<td>${探栏.收口徽章(r.收口)}</td><td>${探栏.安全文本(r.失败指纹||"")}</td>`
+          ));
+        }
+      }
       const closes = await 探栏.getJSON("/api/结栏批次");
       探栏.渲染批次表(document.getElementById("结栏批次表"), closes, ["编号","栏号","时刻","汇总数"]);
+      const 对账 = await 探栏.getJSON("/api/统计/装载对账");
+      document.getElementById("收口对账").innerHTML = [
+        ["成功批数", 对账.成功批数], ["失败批数", 对账.失败批数],
+        ["现行入流总数", 对账.现行入流总数], ["失败影子总行数", 对账.失败影子总行数],
+      ].map(([k, v]) => `<div class="水卡"><div class="数">${v}</div><div class="标">${k}</div></div>`).join("");
+      const 账 = await 探栏.getJSON("/api/装载批收口");
+      const zb = document.getElementById("收口账表");
+      if (!账.length) {
+        zb.innerHTML = `<tr><td colspan="8">${探栏.空态("尚无收口账。")}</td></tr>`;
+      } else {
+        zb.innerHTML = "";
+        for (const r of 账) {
+          zb.appendChild(探栏.行(
+            `<td>${探栏.安全文本(r.批次编号)}</td><td>${探栏.安全文本(r.时刻)}</td>` +
+            `<td>${探栏.收口徽章(r.收口)}</td><td>${探栏.安全文本(r.失败指纹||"")}</td>` +
+            `<td>${r.影子入流}</td><td>${r.现行观测}</td><td>${r.现行在栏}</td>` +
+            `<td>${探栏.安全文本(r.失败原因||"")}</td>`
+          ));
+        }
+      }
       const info = await 探栏.getJSON("/api/仓情");
       探栏.填命运字典(document.getElementById("命运词典"), info["命运词典"] || {});
     }

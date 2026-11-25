@@ -32,9 +32,16 @@ function 安全文本(s) {
   })[c]);
 }
 function 命运色(f) {
-  if (["已入栏", "在栏", "已汇总", "对齐"].includes(f)) return "ok";
-  if (["已坏点", "撕裂"].includes(f)) return "warn";
+  if (["已入栏", "在栏", "已汇总", "对齐", "整批成功"].includes(f)) return "好";
+  if (["已坏点", "撕裂"].includes(f)) return "警";
+  if (["失败清回", "收口撕裂"].includes(f)) return "危";
   return "";
+}
+function 收口徽章(态) {
+  if (!态) return 徽章("收口未记", "");
+  if (态 === "整批成功") return 徽章("整批成功", "好");
+  if (态 === "失败清回") return 徽章("失败清回", "危");
+  return 徽章(态, "");
 }
 function 渲染水位(el, o) {
   if (!el) return;
@@ -87,7 +94,7 @@ function 填命运字典(el, dict) {
   ).join("");
 }
 window.探栏 = {
-  getJSON, postJSON, 行, 徽章, 空态, 安全文本, 命运色,
+  getJSON, postJSON, 行, 徽章, 空态, 安全文本, 命运色, 收口徽章,
   渲染水位, 渲染门槛, 渲染批次表,
   装载摘要文, 结栏摘要文, 贯验摘要文, 填命运字典,
 };

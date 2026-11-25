@@ -1,7 +1,7 @@
 from pathlib import Path
 from quart import Quart, jsonify, request, send_from_directory, redirect
 from app import seed
-from app.services import 目录, 装载, 结栏, 贯验, 夹具, 统计, 说明
+from app.services import 目录, 装载, 结栏, 贯验, 夹具, 统计, 说明, 收口
 
 _STATIC = Path(__file__).resolve().parent / "static"
 app = Quart(__name__)
@@ -152,6 +152,24 @@ async def api_按指标():
 @app.get("/api/统计/装载摘要")
 async def api_装载摘要():
     return jsonify(统计.装载批次摘要())
+
+
+@app.get("/api/统计/装载对账")
+async def api_装载对账():
+    return jsonify(统计.装载对账())
+
+
+@app.get("/api/装载批收口")
+async def api_收口账():
+    return jsonify(收口.收口账列表())
+
+
+@app.get("/api/装载批收口/<batch_id>")
+async def api_收口查(batch_id: str):
+    try:
+        return jsonify(收口.批次收口查(batch_id))
+    except KeyError:
+        return jsonify({"错误": f"无此批次收口记录: {batch_id}"}), 404
 
 
 @app.get("/api/统计/结栏摘要")

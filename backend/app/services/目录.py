@@ -124,12 +124,23 @@ def 装载批次列表(限制: int = 50) -> list[dict]:
         return [
             dict(r)
             for r in conn.execute(
-                "SELECT 编号,时刻,入流,入栏,坏点 FROM 装载批次 ORDER BY 时刻 DESC LIMIT ?",
+                """SELECT 编号,时刻,入流,入栏,坏点,收口,失败指纹
+                   FROM 装载批次 ORDER BY 时刻 DESC LIMIT ?""",
                 (限制,),
             ).fetchall()
         ]
     finally:
         conn.close()
+
+
+def 收口账列表(限制: int = 50) -> list[dict]:
+    from app.services import 收口
+    return 收口.收口账列表(限制)
+
+
+def 批次收口查(批次: str) -> dict:
+    from app.services import 收口
+    return 收口.批次收口查(批次)
 
 
 def 结栏批次列表(限制: int = 50) -> list[dict]:
